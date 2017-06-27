@@ -294,7 +294,8 @@ public:
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S("0x00");
 
-        consensus.HardforkTime = std::numeric_limits<int64_t>::max();
+        consensus.HardforkTime = 1296688603;  // Just past the genesis block
+        consensus.PowChangeAlgo = HashAlgorithm::NUM_HASH_ALGOS;
         consensus.nPowChangeTargetShift = 20;
 
         // By default assume that the signatures in ancestors of this block are valid.

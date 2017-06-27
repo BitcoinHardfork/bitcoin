@@ -13,6 +13,8 @@
 #include "crypto/common.h"
 #include "streams.h"
 
+#include <cstdlib>
+
 uint256 CBlockHeader::GetHash(const Consensus::Params& consensusParams) const
 {
     CDataStream ss(SER_GETHASH, PROTOCOL_VERSION);
@@ -35,6 +37,9 @@ uint256 CBlockHeader::GetHash(const Consensus::Params& consensusParams) const
         case HashAlgorithm::HASH160:
             CHash160().Write(pbegin, ss.size()).Finalize((unsigned char*)&hash);
             break;
+        case HashAlgorithm::NUM_HASH_ALGOS:
+            // Should be impossible
+            abort();
     }
 
     return hash;

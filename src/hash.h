@@ -15,11 +15,12 @@
 
 #include <vector>
 
-enum class HashAlgorithm {
+enum class HashAlgorithm: unsigned int {
     SHA256,
     SHA256d,
     RIPEMD160,
     HASH160,
+    NUM_HASH_ALGOS,
 };
 
 typedef uint256 ChainCode;
