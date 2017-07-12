@@ -2981,8 +2981,12 @@ bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationState& sta
     if (block.nBits != GetNextWorkRequired(pindexPrev, &block, consensusParams))
         return state.DoS(100, false, REJECT_INVALID, "bad-diffbits", false, "incorrect proof of work");
 
+    if (consensusParams.PowAlgorithmForTime(block.GetBlockTime()) != consensusParams.PowAlgorithmForTime(pindexPrev->GetBlockTime()) && block.GetBlockTime() < pindexPrev->GetBlockTime()) {
+        return state.Invalid(false, REJECT_INVALID, "pow-reversed", "cannot reverse PoW change");
+    }
+
     // Check timestamp against prev
-    if (block.GetBlockTime() <= pindexPrev->GetMedianTimePast())
+    if (block.GetBlockTime() < pindexPrev->GetEarliestNextBlockTime(consensusParams))
         return state.Invalid(false, REJECT_INVALID, "time-too-old", "block's timestamp is too early");
 
     // Check timestamp

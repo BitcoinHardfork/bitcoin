@@ -306,6 +306,8 @@ public:
         return pbegin[(pend - pbegin)/2];
     }
 
+    int64_t GetEarliestNextBlockTime(const Consensus::Params&) const;
+
     std::string ToString() const
     {
         return strprintf("CBlockIndex(pprev=%p, nHeight=%d, merkle=%s, hashBlock=%s)",
