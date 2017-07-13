@@ -64,7 +64,7 @@ struct Params {
     uint256 nMinimumChainWork;
 
     /** Hardfork parameters */
-    int64_t HardforkTime;
+    int64_t HardforkTime;  //!< Must be exactly 1 [second] after the final pre-hardfork block, and that block must exclusively have nTime==HardforkTime-1
 
     uint256 defaultAssumeValid;
 };

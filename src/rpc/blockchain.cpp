@@ -1044,7 +1044,20 @@ static UniValue SoftForkDesc(const std::string &name, int version, CBlockIndex* 
 static UniValue BIP9SoftForkDesc(const Consensus::Params& consensusParams, Consensus::DeploymentPos id)
 {
     UniValue rv(UniValue::VOBJ);
-    const ThresholdState thresholdState = VersionBitsTipState(consensusParams, id);
+    ThresholdState thresholdState = VersionBitsTipState(consensusParams, id);
+    int state_since_height = VersionBitsTipStateSinceHeight(consensusParams, id);
+    if (id == Consensus::DEPLOYMENT_SEGWIT) {
+        const CBlockIndex * const hardfork_blockindex = chainActive.FindEarliestAtLeast(consensusParams.HardforkTime);
+        if (hardfork_blockindex) {
+            // Once the hardfork has occurred, Segwit is always active; override the versionbits unless it activated Segwit prior to the hardfork (such as testnet/regtest)
+            thresholdState = THRESHOLD_ACTIVE;
+
+            int hardfork_height = hardfork_blockindex->nHeight;
+            if (thresholdState != THRESHOLD_ACTIVE || state_since_height > hardfork_height) {
+                state_since_height = hardfork_height;
+            }
+        }
+    }
     switch (thresholdState) {
     case THRESHOLD_DEFINED: rv.push_back(Pair("status", "defined")); break;
     case THRESHOLD_STARTED: rv.push_back(Pair("status", "started")); break;
@@ -1058,7 +1071,7 @@ static UniValue BIP9SoftForkDesc(const Consensus::Params& consensusParams, Conse
     }
     rv.push_back(Pair("startTime", consensusParams.vDeployments[id].nStartTime));
     rv.push_back(Pair("timeout", consensusParams.vDeployments[id].nTimeout));
-    rv.push_back(Pair("since", VersionBitsTipStateSinceHeight(consensusParams, id)));
+    rv.push_back(Pair("since", state_since_height));
     return rv;
 }
 
