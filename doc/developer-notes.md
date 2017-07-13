@@ -444,6 +444,9 @@ Current subtrees include:
 - src/crypto/ctaes
   - Upstream at https://github.com/bitcoin-core/ctaes ; actively maintained by Core contributors.
 
+- src/crypto/blake2
+  - Upstream at https://github.com/BLAKE2/BLAKE2.git
+
 - src/univalue
   - Upstream at https://github.com/jgarzik/univalue ; report important PRs to Core to avoid delay.
 
