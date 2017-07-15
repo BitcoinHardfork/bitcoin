@@ -3,6 +3,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "chain.h"
+#include "chainparams.h"
+#include "consensus/params.h"
 #include "util.h"
 #include "test/test_bitcoin.h"
 #include "test/test_random.h"
@@ -102,6 +104,7 @@ BOOST_AUTO_TEST_CASE(getlocator_test)
 
 BOOST_AUTO_TEST_CASE(findearliestatleast_test)
 {
+    const Consensus::Params& consensusParams = Params(CBaseChainParams::MAIN).GetConsensus();
     std::vector<uint256> vHashMain(100000);
     std::vector<CBlockIndex> vBlocksMain(100000);
     for (unsigned int i=0; i<vBlocksMain.size(); i++) {
@@ -115,7 +118,7 @@ BOOST_AUTO_TEST_CASE(findearliestatleast_test)
             vBlocksMain[i].nTimeMax = i;
         } else {
             // randomly choose something in the range [MTP, MTP*2]
-            int64_t medianTimePast = vBlocksMain[i].GetMedianTimePast();
+            int64_t medianTimePast = vBlocksMain[i].GetEarliestNextBlockTime(consensusParams);
             int r = insecure_rand() % medianTimePast;
             vBlocksMain[i].nTime = r + medianTimePast;
             vBlocksMain[i].nTimeMax = std::max(vBlocksMain[i].nTime, vBlocksMain[i-1].nTimeMax);

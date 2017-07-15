@@ -18,6 +18,8 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
     if (pindexLast == NULL)
         return nProofOfWorkLimit;
 
+    uint32_t nBits;
+
     // Only change once per difficulty adjustment interval
     if ((pindexLast->nHeight+1) % params.DifficultyAdjustmentInterval() != 0)
     {
@@ -30,23 +32,38 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
                 return nProofOfWorkLimit;
             else
             {
-                // Return the last non-special-min-difficulty-rules-block
+                // Look back to the last non-special-min-difficulty-rules-block
                 const CBlockIndex* pindex = pindexLast;
                 while (pindex->pprev && pindex->nHeight % params.DifficultyAdjustmentInterval() != 0 && pindex->nBits == nProofOfWorkLimit)
                     pindex = pindex->pprev;
-                return pindex->nBits;
+                nBits = pindex->nBits;
             }
+        } else {
+            nBits = pindexLast->nBits;
         }
-        return pindexLast->nBits;
+    } else {
+        // Go back by what we want to be 14 days worth of blocks
+        int nHeightFirst = pindexLast->nHeight - (params.DifficultyAdjustmentInterval()-1);
+        assert(nHeightFirst >= 0);
+        const CBlockIndex* pindexFirst = pindexLast->GetAncestor(nHeightFirst);
+        assert(pindexFirst);
+
+        nBits = CalculateNextWorkRequired(pindexLast, pindexFirst->GetBlockTime(), params);
     }
 
-    // Go back by what we want to be 14 days worth of blocks
-    int nHeightFirst = pindexLast->nHeight - (params.DifficultyAdjustmentInterval()-1);
-    assert(nHeightFirst >= 0);
-    const CBlockIndex* pindexFirst = pindexLast->GetAncestor(nHeightFirst);
-    assert(pindexFirst);
+    if (params.PowAlgorithmForTime(pblock->nTime) != params.PowAlgorithmForTime(pindexLast->nTime)) {
+        // Adjust target for PoW change
+        arith_uint256 bnNew;
+        bnNew.SetCompact(nBits);
+        bnNew <<= params.nPowChangeTargetShift;
+        const arith_uint256 bnPowLimit = UintToArith256(params.powLimit);
+        if (bnNew > bnPowLimit) {
+            bnNew = bnPowLimit;
+        }
+        nBits = bnNew.GetCompact();
+    }
 
-    return CalculateNextWorkRequired(pindexLast, pindexFirst->GetBlockTime(), params);
+    return nBits;
 }
 
 unsigned int CalculateNextWorkRequired(const CBlockIndex* pindexLast, int64_t nFirstBlockTime, const Consensus::Params& params)
